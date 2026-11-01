@@ -1,0 +1,62 @@
+name: repojack
+description: Fail when a dependency points at a GitHub owner that no longer exists (repojacking)
+branding:
+  icon: anchor
+  color: red
+inputs:
+  path:
+    description: Directories or files to scan (space separated)
+    default: "."
+  ignore:
+    description: Comma-separated owners or owner/repo to skip
+    default: ""
+  sarif:
+    description: Path to also write a SARIF report to (empty = skip)
+    default: ""
+  version:
+    description: Release to download, e.g. v0.1.0. Defaults to the tag the action is pinned to; builds from source (needs Go) when that is not a release tag
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Install repojack
+      shell: bash
+      env:
+        IN_VERSION: ${{ inputs.version }}
+        ACTION_REF: ${{ github.action_ref }}
+      run: |
+        set -euo pipefail
+        ver="${IN_VERSION:-}"
+        [ -z "$ver" ] && ver="${ACTION_REF:-}"
+        dir="$RUNNER_TEMP/repojack-bin"; mkdir -p "$dir"
+        exe=repojack; [ "$RUNNER_OS" = Windows ] && exe=repojack.exe
+        if [[ "$ver" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          case "$RUNNER_OS" in Linux) os=linux;; macOS) os=darwin;; Windows) os=windows;; *) echo "unsupported OS $RUNNER_OS"; exit 1;; esac
+          case "$RUNNER_ARCH" in X64) arch=amd64;; ARM64) arch=arm64;; *) echo "unsupported arch $RUNNER_ARCH"; exit 1;; esac
+          ext=tar.gz; [ "$os" = windows ] && ext=zip
+          file="repojack_${ver#v}_${os}_${arch}.${ext}"
+          base="https://github.com/ucsurf/repojack/releases/download/${ver}"
+          curl -fsSL --retry 3 -o "$dir/$file" "$base/$file"
+          curl -fsSL --retry 3 -o "$dir/checksums.txt" "$base/checksums.txt"
+          ( cd "$dir"
+            grep " ${file}\$" checksums.txt > want.txt
+            if command -v sha256sum >/dev/null; then sha256sum -c want.txt; else shasum -a 256 -c want.txt; fi
+            if [ "$ext" = zip ]; then unzip -oq "$file" "$exe"; else tar -xzf "$file" "$exe"; fi )
+          echo "repojack ${ver} (release binary, checksum verified)"
+        else
+          command -v go >/dev/null || { echo "Go is required to build repojack from source; pin the action to a release tag or set 'version'"; exit 1; }
+          ( cd "$GITHUB_ACTION_PATH" && go build -trimpath -o "$dir/$exe" ./cmd/repojack )
+          echo "repojack built from source at ${ver:-HEAD}"
+        fi
+        echo "$dir" >> "$GITHUB_PATH"
+    - name: Scan
+      shell: bash
+      env:
+        IN_PATH: ${{ inputs.path }}
+        IN_IGNORE: ${{ inputs.ignore }}
+        IN_SARIF: ${{ inputs.sarif }}
+      run: |
+        if [ -n "$IN_SARIF" ]; then
+          repojack -format sarif -ignore "$IN_IGNORE" $IN_PATH > "$IN_SARIF" || true
+        fi
+        repojack -ignore "$IN_IGNORE" $IN_PATH

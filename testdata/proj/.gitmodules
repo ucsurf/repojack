@@ -1,0 +1,3 @@
+[submodule "x"]
+	path = x
+	url = git@github.com:ghost-owner-rj404/sub.git

@@ -1,0 +1,2 @@
+requests==2.32.0
+git+https://github.com/ghost-owner-rj404/pylib.git@main#egg=pylib

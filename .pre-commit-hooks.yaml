@@ -1,0 +1,7 @@
+- id: repojack
+  name: repojack
+  description: Fail when a dependency points at a GitHub owner that no longer exists
+  entry: repojack
+  language: golang
+  pass_filenames: false
+  files: (^|/)(go\.mod|package\.json|requirements[^/]*\.txt|pyproject\.toml|Pipfile|Cargo\.toml|\.gitmodules|action\.ya?ml|\.github/workflows/.*\.ya?ml)$
