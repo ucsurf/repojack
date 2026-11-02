@@ -1,10 +1,14 @@
 # repojack
 
 [![CI](https://github.com/ucsurf/repojack/actions/workflows/ci.yml/badge.svg)](https://github.com/ucsurf/repojack/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ucsurf/repojack)](https://github.com/ucsurf/repojack/releases/latest)
 [![Go Reference](https://pkg.go.dev/badge/github.com/ucsurf/repojack.svg)](https://pkg.go.dev/github.com/ucsurf/repojack)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ucsurf/repojack/badge)](https://scorecard.dev/viewer/?uri=github.com/ucsurf/repojack)
 
 **Find dependencies that point at a GitHub account that no longer exists, so anyone can register it and serve you their code.**
+
+## Why
 
 When a GitHub user or org is renamed or deleted, its old name becomes free. Whoever registers it next owns `github.com/<old-name>/<repo>`: your `go.mod`, your `uses:` lines, your `git+https://` pins and your submodules now fetch from them. This is called *repojacking*. GitHub's "retired namespace" protection only covers repos with more than 100 clones in the week before the rename, and Go modules served from the module proxy are rarely cloned.
 
@@ -139,6 +143,8 @@ repos:
 - An owner that exists but was **recreated by someone else** looks fine to `repojack`. Pin by commit SHA or checksum (`go.sum`, lockfiles) to catch content changes.
 - It cannot tell whether GitHub has retired a popular namespace; treat every finding as real until you move off it.
 - Only github.com references are checked.
+- A manifest stops being read at the first line longer than 1 MiB, and `package.json` is read only for its dependency sections (not `scripts`).
+- Requests are unauthenticated HEADs to github.com. Very large monorepos can hit GitHub's rate limiting, so lower `-concurrency` if you see errors.
 
 ## License
 

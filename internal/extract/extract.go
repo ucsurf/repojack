@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -112,7 +113,13 @@ func npm(path string, data []byte) []Ref {
 		if json.Unmarshal(pkg[sec], &deps) != nil {
 			continue
 		}
-		for name, v := range deps {
+		names := make([]string, 0, len(deps))
+		for name := range deps {
+			names = append(names, name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			v := deps[name]
 			spec, ok := v.(string)
 			if !ok {
 				continue
