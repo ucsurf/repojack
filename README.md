@@ -122,7 +122,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - uses: ucsurf/repojack@v0.1.0
+      - uses: ucsurf/repojack@v0.1.1
 ```
 
 Inputs: `path` (default `.`), `ignore`, `sarif` (path for a SARIF report), `version` (release to use; defaults to the tag you pinned).
@@ -133,7 +133,7 @@ The action downloads the prebuilt release binary for the runner and verifies it 
 ```yaml
 repos:
   - repo: https://github.com/ucsurf/repojack
-    rev: v0.1.0
+    rev: v0.1.1
     hooks:
       - id: repojack
 ```

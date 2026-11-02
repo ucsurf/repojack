@@ -14,7 +14,7 @@ inputs:
     description: Path to also write a SARIF report to (empty = skip)
     default: ""
   version:
-    description: Release to download, e.g. v0.1.0. Defaults to the tag the action is pinned to; builds from source when that is not a release tag
+    description: Release to download, e.g. v0.1.1. Defaults to the tag the action is pinned to; builds from source when that is not a release tag
     default: ""
 runs:
   using: composite
